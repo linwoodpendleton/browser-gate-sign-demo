@@ -1,0 +1,11 @@
+{
+  "name": "qlvm-demo-frontend",
+  "version": "0.1.0",
+  "description": "研究用 demo:浏览器环境门禁签名前端。勿照抄到生产。",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "comment": "build.mjs 的字节码混淆需要可选依赖 js-confuser-vm:npm i js-confuser-vm"
+}

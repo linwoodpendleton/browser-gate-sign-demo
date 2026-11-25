@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>qlVM demo</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font: 14px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; max-width: 760px; margin: 2rem auto; padding: 0 16px; }
+    h1 { font-size: 18px; }
+    button { font: inherit; padding: 8px 14px; cursor: pointer; }
+    pre { background: #8881; padding: 12px; border-radius: 8px; white-space: pre-wrap; word-break: break-all; }
+    .ok { color: #16a34a; } .bad { color: #dc2626; }
+    .note { opacity: .75; }
+  </style>
+</head>
+<body>
+  <h1>qlVM demo — 浏览器环境门禁签名</h1>
+  <p class="note">
+    在真浏览器里点「签名并请求」会拿到真 key、签名通过;若用 node/puppeteer-headless/curl 调同一接口,
+    env 门禁会污染 key,后端验签失败。仅供研究,勿照抄。
+  </p>
+
+  <p>后端地址:<input id="api" value="http://127.0.0.1:8080/getQueryList" size="40" /></p>
+  <button id="go">签名并请求</button>
+
+  <h3>签名头</h3>
+  <pre id="sig">(未执行)</pre>
+  <h3>后端响应</h3>
+  <pre id="resp">(未执行)</pre>
+
+  <script src="./qlvm_source.js"></script>
+  <script src="./qlcipher.js"></script>
+  <script>
+    document.getElementById("go").onclick = async () => {
+      const sigEl = document.getElementById("sig");
+      const respEl = document.getElementById("resp");
+      try {
+        const body = { keyword: "wireless earbuds", domainId: "1", page: 1 };
+        const bodyStr = JSON.stringify(body);
+        const { headers } = await qlSign(bodyStr);
+        sigEl.textContent = JSON.stringify(headers, null, 2);
+
+        const r = await fetch(document.getElementById("api").value, {
+          method: "POST", headers, body: bodyStr,
+        });
+        const text = await r.text();
+        respEl.textContent = "HTTP " + r.status + "\n" + text;
+        respEl.className = r.ok ? "ok" : "bad";
+      } catch (e) {
+        respEl.textContent = "错误:" + e.message;
+        respEl.className = "bad";
+      }
+    };
+  </script>
+</body>
+</html>
